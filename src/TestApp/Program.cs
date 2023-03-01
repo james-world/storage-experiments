@@ -18,8 +18,6 @@ var blobServiceClient = GetBlobServiceClient(account);
 var testContainer = blobServiceClient.GetBlobContainerClient("test");
 testContainer.CreateIfNotExists();
 
-var userDelegationKey = await blobServiceClient
-    .GetUserDelegationKeyAsync(DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddDays(7));
 
 
 // check to see if a blob called test.csv exists
@@ -43,6 +41,8 @@ blobClient.CommitBlockList(new List<string> { id, id2, id3 }, new CommitBlockLis
 
 
 
+// Need to use this approach (a user delegation key) when using Token credentials
+// If using a shared key, you can just call blobClient.GenerateSasUri instead
 Uri GetBlobDownloadUri(BlockBlobClient blobClient, UserDelegationKey userDelegationKey, string account) {
     var sasBuilder = new BlobSasBuilder {    
         StartsOn = DateTimeOffset.UtcNow,
@@ -60,6 +60,9 @@ Uri GetBlobDownloadUri(BlockBlobClient blobClient, UserDelegationKey userDelegat
     };
     return blobUriBuilder.ToUri();
 }
+
+var userDelegationKey = await blobServiceClient
+    .GetUserDelegationKeyAsync(DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddDays(7));
 
 Console.WriteLine(GetBlobDownloadUri(blobClient, userDelegationKey, account));
 
